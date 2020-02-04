@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { remote } from 'electron';
 import parser from './parser';
+import url from 'url';
 
 const { BrowserWindow, app } = remote;
 
@@ -31,11 +32,17 @@ export default async function createViewFrame(mode, page) {
   if (mode === 'json') {
     const parsed = parser(JSON.parse(page).content);
     const html = `<html><head><title>Sharabiz Page View</title><meta http-equiv="Content-Security-Policy" content="script-src 'self';"></head><body>${parsed.toString()}</body></html>`;
+    console.log(encodeURI( path.join(app.getPath('appData'), 'sheditor', 'view.html')))
     if (!fs.existsSync(path.join(app.getPath('appData'), 'sheditor'))) {
       fs.mkdirSync(path.join(app.getPath('appData'), 'sheditor'));
     }
+    console.log(path.join(app.getPath('appData'), 'sheditor', 'view.html'))
     fs.writeFile(
-      path.join(app.getPath('appData'), 'sheditor', 'view.html'),
+      url.format({
+        pathname:path.join(app.getPath('appData'), 'sheditor', 'view.html'),
+        protocol:'file:'
+        })
+     ,
       html,
       () => {
         if (!view) {
@@ -49,7 +56,10 @@ export default async function createViewFrame(mode, page) {
           });
         }
         view.loadURL(
-          path.join(app.getPath('appData'), 'sheditor', 'view.html')
+          url.format({
+            pathname:path.join(app.getPath('appData'), 'sheditor', 'view.html'),
+            protocol:'file:'
+            })
         );
         view.show();
         view.focus();
